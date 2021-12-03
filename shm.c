@@ -75,8 +75,21 @@ return 0; //added to remove compiler warning -- you should decide what to return
 int shm_close(int id) {
 //you write this too!
 
-
-
-
+  int i;
+  acquire(&(shm_table.lock));
+  for (i = 0; i< 64; i++) { 
+    if (shm_table.shm_pages[i].id == id) { // if page is found
+      if (shm_table.shm_pages[i].refcnt > 0) { // decrements reference count if count is nonzero
+        shm_table.shm_pages[i].refcnt-=1;
+      }
+      if (shm_table.shm_pages[i].refcnt == 0) { // clears table if count reaches zero
+        shm_table.shm_pages[i].frame = 0;
+        shm_table.shm_pages[i].id = 0;
+        break;
+      }
+  	}
+  }
+  release(&(shm_table.lock));
+  
 return 0; //added to remove compiler warning -- you should decide what to return
 }
